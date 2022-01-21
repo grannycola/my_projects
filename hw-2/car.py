@@ -1,11 +1,10 @@
-from base import Vechile
+from base import Vehicle
 
 
-class Car(Vechile):
-    def __init__(self, weight, fuel, fuel_consumptiong):
-        super().__init__(weight, fuel, fuel_consumptiong)
+class Car(Vehicle):
+    def __init__(self, weight, fuel, fuel_consumption):
+        super().__init__(weight, fuel, fuel_consumption)
         self.engine = None
 
     def set_engine(self, engine_cls):
         self.engine = engine_cls
-

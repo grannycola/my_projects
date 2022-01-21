@@ -1,12 +1,12 @@
 import exceptions
 
 
-class Vechile():
-    def __init__(self, weight, fuel, fuel_consumptiong):
-        self.weight = weight  # tons
+class Vehicle:
+    def __init__(self, weight, fuel, fuel_consumption):
+        self.weight = weight
         self.started = False
-        self.fuel = fuel  # liters
-        self.fuel_consumption = fuel_consumptiong  # liters per hour
+        self.fuel = fuel
+        self.fuel_consumption = fuel_consumption
 
     def start(self):
         if self.fuel > 0:
@@ -15,7 +15,7 @@ class Vechile():
             raise exceptions.LowFuelError
 
     def move(self, distance):
-        if (self.fuel / self.fuel_consumption) >= distance:
-            pass
+        if (self.fuel_consumption * distance) <= self.fuel:
+            self.fuel -= self.fuel_consumption * distance
         else:
             raise exceptions.NotEnoughFuel(distance)

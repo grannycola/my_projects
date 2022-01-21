@@ -1,6 +1,6 @@
 class LowFuelError(Exception):
     def __str__(self):
-        return "Your vechile is out of fuel to start"
+        return "Your vehicle is out of fuel to start"
 
 
 class NotEnoughFuel(Exception):
