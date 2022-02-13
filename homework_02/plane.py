@@ -12,7 +12,7 @@ class Plane(Vehicle):
         if (weight + self.cargo) > self.max_cargo:
             raise exceptions.CargoOverload(weight + self.cargo, self.max_cargo)
         else:
-            self.cargo += weight + self.cargo
+            self.cargo += weight
 
     def remove_all_cargo(self):
         last_cargo = self.cargo
