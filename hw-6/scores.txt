@@ -1,0 +1,8 @@
+0.5675413022351797, LGBMClassifier_default
+0.5583250249252243, CatBoostClassifier_default
+0.5378640776699029, XGBClassifier_default
+0.5533199195171026, GradientBoosting_default
+0.5501551189245089, CatBoost_tuned
+0.5578093306288032, LGBM_tuned
+0.5544147843942505, GradBoostSklearn_tuned
+0.5644670050761421, XGB_tuned
