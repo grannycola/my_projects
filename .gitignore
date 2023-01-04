@@ -3,4 +3,5 @@
 **/.pytest_cache/
 **/.cache/
 **/catboost_info/
+**/dataset/
 opencv_kornia/detectron2/
