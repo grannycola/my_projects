@@ -2,7 +2,10 @@ import glob
 import os
 import cv2
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from utils import get_preprocessing, visualize
+import torch
+import albumentations as A
 
 
 class BalloonDatasetSegmentation(Dataset):
@@ -46,3 +49,38 @@ class BalloonDatasetSegmentation(Dataset):
 
     def __len__(self):
         return len(self.img_files)
+
+
+class BalloonLoaders:
+    @staticmethod
+    def minimal_transformations():
+        transform = [
+            A.Resize(height=512, width=512, p=1)]
+        return A.Compose(transform)
+
+    def __init__(self, augmentation, preprocessing_fn,
+                 train_size_perc=0.8,
+                 minimal_transformations=minimal_transformations()):
+        self.balloon_dataset = BalloonDatasetSegmentation('balloon\\train',
+                                                          classes=['balloon'],
+                                                          preprocessing=get_preprocessing(preprocessing_fn),
+                                                          augmentation=augmentation, )
+
+        self.valid_dataset = BalloonDatasetSegmentation('balloon\\val',
+                                                        classes=['balloon'],
+                                                        preprocessing=get_preprocessing(preprocessing_fn),
+                                                        augmentation=minimal_transformations, )
+
+        self.train_size = int(train_size_perc * len(self.balloon_dataset))
+        self.test_size = len(self.balloon_dataset) - self.train_size
+
+        self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.balloon_dataset,
+                                                                              [self.train_size, self.test_size])
+
+        self.train_loader = DataLoader(self.train_dataset, batch_size=8, shuffle=True)
+        self.valid_loader = DataLoader(self.valid_dataset, batch_size=8, shuffle=False)
+
+    def show_example(self):
+        n = np.random.choice(len(self.train_dataset))
+        image, mask = self.train_dataset[n]
+        visualize(image=image.transpose((1, 2, 0)), mask=mask.transpose((1, 2, 0)) * 255)

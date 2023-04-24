@@ -8,3 +8,4 @@ opencv_kornia/detectron2/
 finetunning/data/
 object_detection/otus_basketball_dataset/
 object_detection/output/
+*.pyc
