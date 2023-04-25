@@ -40,7 +40,7 @@ class BalloonDatasetSegmentation(Dataset):
             sample = self.augmentation(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
 
-            # apply preprocessing
+        # apply preprocessing
         if self.preprocessing:
             sample = self.preprocessing(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
@@ -52,16 +52,33 @@ class BalloonDatasetSegmentation(Dataset):
 
 
 class BalloonLoaders:
+    
+    
     @staticmethod
     def minimal_transformations():
         transform = [
             A.Resize(height=512, width=512, p=1)]
         return A.Compose(transform)
-
-    def __init__(self, augmentation, preprocessing_fn,
+    
+    
+    @staticmethod
+    def train_test_split(dataset, train_size_perc=0.8, ):
+        
+        train_size = int(train_size_perc * len(dataset))
+        test_size = len(dataset) - train_size
+        
+        return torch.utils.data.random_split(dataset, [train_size, test_size])
+    
+    
+    def __init__(self, preprocessing_fn, augmentation=None,
                  train_size_perc=0.8,
                  minimal_transformations=minimal_transformations()):
-        self.balloon_dataset = BalloonDatasetSegmentation('balloon\\train',
+        
+        # Если аугментации не указаны, применить минимальные трансформации
+        if not augmentation:
+            augmentation = minimal_transformations
+        
+        self.train_dataset = BalloonDatasetSegmentation('balloon\\train',
                                                           classes=['balloon'],
                                                           preprocessing=get_preprocessing(preprocessing_fn),
                                                           augmentation=augmentation, )
@@ -70,16 +87,13 @@ class BalloonLoaders:
                                                         classes=['balloon'],
                                                         preprocessing=get_preprocessing(preprocessing_fn),
                                                         augmentation=minimal_transformations, )
-
-        self.train_size = int(train_size_perc * len(self.balloon_dataset))
-        self.test_size = len(self.balloon_dataset) - self.train_size
-
-        self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.balloon_dataset,
-                                                                              [self.train_size, self.test_size])
+        
+        self.train_dataset, self.test_dataset = train_test_split(self.train_dataset)
 
         self.train_loader = DataLoader(self.train_dataset, batch_size=8, shuffle=True)
         self.valid_loader = DataLoader(self.valid_dataset, batch_size=8, shuffle=False)
-
+        self.test_loader = DataLoader(self.test_dataset, batch_size=8, shuffle=False)
+    
     def show_example(self):
         n = np.random.choice(len(self.train_dataset))
         image, mask = self.train_dataset[n]
