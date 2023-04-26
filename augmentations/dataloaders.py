@@ -51,13 +51,15 @@ class BalloonDatasetSegmentation(Dataset):
         return len(self.img_files)
 
 
-class BalloonLoaders:
     
+    
+class BalloonLoaders:
     
     @staticmethod
     def minimal_transformations():
         transform = [
-            A.Resize(height=512, width=512, p=1)]
+                    A.Resize(height=512, width=512, p=1)
+                ]
         return A.Compose(transform)
     
     
@@ -71,12 +73,11 @@ class BalloonLoaders:
     
     
     def __init__(self, preprocessing_fn, augmentation=None,
-                 train_size_perc=0.8,
-                 minimal_transformations=minimal_transformations()):
+                 train_size_perc=0.8):
         
         # Если аугментации не указаны, применить минимальные трансформации
         if not augmentation:
-            augmentation = minimal_transformations
+            augmentation = self.minimal_transformations()
         
         self.train_dataset = BalloonDatasetSegmentation('balloon\\train',
                                                           classes=['balloon'],
@@ -86,9 +87,9 @@ class BalloonLoaders:
         self.valid_dataset = BalloonDatasetSegmentation('balloon\\val',
                                                         classes=['balloon'],
                                                         preprocessing=get_preprocessing(preprocessing_fn),
-                                                        augmentation=minimal_transformations, )
+                                                        augmentation=self.minimal_transformations())
         
-        self.train_dataset, self.test_dataset = train_test_split(self.train_dataset)
+        self.train_dataset, self.test_dataset = BalloonLoaders.train_test_split(self.train_dataset)
 
         self.train_loader = DataLoader(self.train_dataset, batch_size=8, shuffle=True)
         self.valid_loader = DataLoader(self.valid_dataset, batch_size=8, shuffle=False)
