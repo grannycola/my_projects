@@ -1,5 +1,8 @@
 **/.idea/
 **/.ipynb_checkpoints/
+**/__pycache__/
+**/.spyproject/
+**/__MACOSX/
 **/.pytest_cache/
 **/.cache/
 **/catboost_info/
