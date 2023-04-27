@@ -3,9 +3,22 @@ import os
 import cv2
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from utils import get_preprocessing, visualize
+from utils import visualize
 import torch
 import albumentations as A
+
+
+def to_tensor(x, **kwargs):
+    return x.transpose(2, 0, 1).astype('float32')
+
+
+def get_preprocessing(preprocessing_fn):
+    _transform = [
+        A.Lambda(image=preprocessing_fn),
+        A.Lambda(image=to_tensor, mask=to_tensor),
+    ]
+    return A.Compose(_transform)
+
 
 
 class BalloonDatasetSegmentation(Dataset):

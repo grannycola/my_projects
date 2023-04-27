@@ -1,19 +1,6 @@
 import torch
-import albumentations as A
 from matplotlib import pyplot as plt
 import numpy as np
-
-
-def to_tensor(x, **kwargs):
-    return x.transpose(2, 0, 1).astype('float32')
-
-
-def get_preprocessing(preprocessing_fn):
-    _transform = [
-        A.Lambda(image=preprocessing_fn),
-        A.Lambda(image=to_tensor, mask=to_tensor),
-    ]
-    return A.Compose(_transform)
 
 
 def visualize(**images):
