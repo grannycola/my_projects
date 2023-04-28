@@ -20,7 +20,7 @@ def create_labels(dataset_type='train'):
 
         if os.path.exists(path_to_mask):
             continue
-        else:                
+        else:
             img = cv2.imread(f'{path}\\{filename}')
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 

@@ -20,12 +20,19 @@ def get_preprocessing(preprocessing_fn):
     return A.Compose(_transform)
 
 
-
 class BalloonDatasetSegmentation(Dataset):
     CLASSES = ['balloon']
 
+    @staticmethod
+    def minimal_transformations(input_shape):
+        transform = [
+            A.Resize(height=input_shape[0], width=input_shape[1], p=1)
+        ]
+        return A.Compose(transform)
+
     def __init__(self,
                  folder_path,
+                 input_size=(512, 512),
                  classes=None,
                  augmentation=None,
                  preprocessing=None):
@@ -38,6 +45,7 @@ class BalloonDatasetSegmentation(Dataset):
             cls.lower()) for cls in classes]
         self.preprocessing = preprocessing
         self.augmentation = augmentation
+        self.input_size = input_size
 
     def __getitem__(self, index):
         img_path = self.img_files[index]
@@ -48,6 +56,8 @@ class BalloonDatasetSegmentation(Dataset):
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask = np.expand_dims(mask, axis=2)
+        sample = self.minimal_transformations(self.input_size)(image=image, mask=mask)
+        image, mask = sample['image'], sample['mask']
 
         # apply augmentations
         if self.augmentation:
@@ -66,12 +76,6 @@ class BalloonDatasetSegmentation(Dataset):
 
 
 class BalloonLoaders:
-    @staticmethod
-    def minimal_transformations():
-        transform = [
-            A.Resize(height=512, width=512, p=1)
-        ]
-        return A.Compose(transform)
 
     @staticmethod
     def train_test_split(dataset, train_size_perc=0.8, ):
@@ -84,21 +88,17 @@ class BalloonLoaders:
     def __init__(self, preprocessing_fn, augmentation=None,
                  train_size_perc=0.8):
 
-        # Если аугментации не указаны, применить минимальные трансформации
-        if not augmentation:
-            augmentation = self.minimal_transformations()
-
         self.train_dataset = BalloonDatasetSegmentation('balloon\\train',
                                                         classes=['balloon'],
                                                         preprocessing=get_preprocessing(
                                                             preprocessing_fn),
-                                                        augmentation=augmentation, )
+                                                        augmentation=augmentation,)
 
         self.valid_dataset = BalloonDatasetSegmentation('balloon\\val',
                                                         classes=['balloon'],
                                                         preprocessing=get_preprocessing(
                                                             preprocessing_fn),
-                                                        augmentation=self.minimal_transformations())
+                                                        augmentation=None,)
 
         self.train_dataset, self.test_dataset = BalloonLoaders.train_test_split(
             self.train_dataset)
