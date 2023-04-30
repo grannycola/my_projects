@@ -20,6 +20,33 @@ def get_preprocessing(preprocessing_fn):
     return A.Compose(_transform)
 
 
+class ApplyTransform(Dataset):
+
+    def __init__(self, dataset,
+                 augmentation=None,
+                 preprocessing=None,):
+        self.dataset = dataset
+        self.augmentation = augmentation
+        self.preprocessing = preprocessing
+
+    def __getitem__(self, idx):
+        image, mask = self.dataset[idx]
+
+        # apply augmentations
+        if self.augmentation:
+            sample = self.augmentation(image=image, mask=mask)
+            image, mask = sample['image'], sample['mask']
+
+        if self.preprocessing:
+            sample = self.preprocessing(image=image, mask=mask)
+            image, mask = sample['image'], sample['mask']
+
+        return image, mask
+
+    def __len__(self):
+        return len(self.dataset)
+
+
 class BalloonDatasetSegmentation(Dataset):
     CLASSES = ['balloon']
 
@@ -33,9 +60,7 @@ class BalloonDatasetSegmentation(Dataset):
     def __init__(self,
                  folder_path,
                  input_size=(512, 512),
-                 classes=None,
-                 augmentation=None,
-                 preprocessing=None):
+                 classes=None,):
         super(BalloonDatasetSegmentation, self).__init__()
 
         self.img_files = glob.glob(os.path.join(folder_path, '*.jpg'))
@@ -43,8 +68,6 @@ class BalloonDatasetSegmentation(Dataset):
             os.path.join(folder_path, 'masks', '*.png'))
         self.class_values = [self.CLASSES.index(
             cls.lower()) for cls in classes]
-        self.preprocessing = preprocessing
-        self.augmentation = augmentation
         self.input_size = input_size
 
     def __getitem__(self, index):
@@ -56,18 +79,10 @@ class BalloonDatasetSegmentation(Dataset):
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask = np.expand_dims(mask, axis=2)
+
+        # apply minimal_transforms
         sample = self.minimal_transformations(self.input_size)(image=image, mask=mask)
         image, mask = sample['image'], sample['mask']
-
-        # apply augmentations
-        if self.augmentation:
-            sample = self.augmentation(image=image, mask=mask)
-            image, mask = sample['image'], sample['mask']
-
-        # apply preprocessing
-        if self.preprocessing:
-            sample = self.preprocessing(image=image, mask=mask)
-            image, mask = sample['image'], sample['mask']
 
         return image, mask
 
@@ -90,18 +105,33 @@ class BalloonLoaders:
 
         self.train_dataset = BalloonDatasetSegmentation('balloon\\train',
                                                         classes=['balloon'],
-                                                        preprocessing=get_preprocessing(
-                                                            preprocessing_fn),
-                                                        augmentation=augmentation,)
+                                                        )
 
         self.valid_dataset = BalloonDatasetSegmentation('balloon\\val',
                                                         classes=['balloon'],
-                                                        preprocessing=get_preprocessing(
-                                                            preprocessing_fn),
-                                                        augmentation=None,)
+                                                        )
 
+        # Сначала сплитим данные, потом аугментации
         self.train_dataset, self.test_dataset = BalloonLoaders.train_test_split(
             self.train_dataset)
+
+        # Аугментируем только тренировочные данные
+        self.train_dataset = ApplyTransform(self.train_dataset,
+                                            augmentation=augmentation,
+                                            preprocessing=get_preprocessing(
+                                                preprocessing_fn),
+                                            )
+        self.valid_dataset = ApplyTransform(self.valid_dataset,
+                                            augmentation=None,
+                                            preprocessing=get_preprocessing(
+                                                preprocessing_fn),
+                                            )
+        self.test_dataset = ApplyTransform(self.test_dataset,
+                                           augmentation=None,
+                                           preprocessing=get_preprocessing(
+                                               preprocessing_fn),
+                                           )
+
         self.train_loader = DataLoader(
             self.train_dataset, batch_size=8, shuffle=True)
         self.valid_loader = DataLoader(
