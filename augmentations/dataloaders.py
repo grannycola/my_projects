@@ -111,6 +111,7 @@ class BalloonLoaders:
                                                         classes=['balloon'],
                                                         )
 
+<<<<<<< Updated upstream
         # Сначала сплитим данные, потом аугментации
         self.train_dataset, self.test_dataset = BalloonLoaders.train_test_split(
             self.train_dataset)
@@ -138,6 +139,12 @@ class BalloonLoaders:
             self.valid_dataset, batch_size=8, shuffle=False)
         self.test_loader = DataLoader(
             self.test_dataset, batch_size=8, shuffle=False)
+=======
+        self.train_dataset, self.test_dataset = BalloonLoaders.train_test_split(self.train_dataset)
+        self.train_loader = DataLoader(self.train_dataset, batch_size=8, shuffle=True)
+        self.valid_loader = DataLoader(self.valid_dataset, batch_size=8, shuffle=False)
+        self.test_loader = DataLoader(self.test_dataset, batch_size=8, shuffle=False)
+>>>>>>> Stashed changes
 
     def show_example(self):
         n = np.random.choice(len(self.train_dataset))
